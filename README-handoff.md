@@ -21,15 +21,15 @@ Aplicación web simple, responsiva y gratuita para simular de forma dinámica (s
 | Capa | Tecnología | Versión | Motivo |
 |---|---|---|---|
 | Estructura | HTML5 semántico | Estándar | Sin build. Una página por simulación o SPA con pestañas. |
-| Estilos | Pico CSS (clásico) | 2.x (confirmar la última con `npm view @picocss/pico version`) | Estilo semántico y responsivo sin clases. |
+| Estilos | Pico CSS (clásico) | 2.1.1 (verificada en npm) | Estilo semántico y responsivo sin clases. |
 | Lógica | JavaScript vanilla, módulos ES (`<script type="module">`) | ES2022 | Modelos puros y testeables, sin build. |
-| Interactividad | Alpine.js (opcional) | 3.x (confirmar con `npm view alpinejs version`) | Reactividad para sliders y pestañas con atributos HTML. |
-| Gráficos | Chart.js (bundle UMD) | 4.5.1 (confirmar con `npm view chart.js version`) | Líneas, barras y series temporales dinámicas. |
+| Interactividad | JavaScript vanilla (sin Alpine.js) | n/a | Decisión tomada: menos dependencias. Controles y gráficos se actualizan desde módulos propios. |
+| Gráficos | Chart.js (bundle UMD) | 4.6.1 (verificada en npm) | Líneas, barras y series temporales dinámicas. |
 | Hosting | Cloudflare Pages (subida directa) o Workers con Static Assets | Plan gratuito | Archivos estáticos, gratis en prototipo. |
-| Despliegue manual | Panel de Cloudflare, o Wrangler (`pages deploy` / `deploy`) | Wrangler 4.x, Node.js LTS 20 o superior (solo en la máquina local) | La subida desde el panel no requiere Node. |
+| Despliegue manual | Panel de Cloudflare, o Wrangler (`pages deploy` / `deploy`) | Wrangler 4.163.0, que exige Node.js >= 22.12.0 (solo en la máquina local) | La subida desde el panel no requiere Node. |
 | Repositorio | GitHub | n/a | `https://github.com/aleretegui/gh2-1311-simecoweb` |
 
-Las versiones de librerías provienen de fuentes secundarias. **Verifícalas contra el registro oficial antes de fijarlas** y anota la versión final en `/vendor/VERSIONS.md`.
+Versiones verificadas contra el registro de npm el 2026-11-16 y anotadas en `/vendor/VERSIONS.md`.
 
 ## 4. Estructura de carpetas propuesta
 
@@ -251,7 +251,7 @@ Las versiones de librerías provienen de fuentes secundarias. **Verifícalas con
 2. Nombra el proyecto y sube la carpeta del repositorio (sin `.git`).
 3. Cloudflare publica en `https://<proyecto>.pages.dev`.
 
-**Opción B: Wrangler (requiere Node.js LTS 20 o superior en tu máquina).**
+**Opción B: Wrangler (requiere Node.js 22.12 o superior en tu máquina).**
 ```bash
 npx wrangler pages deploy . --project-name=<proyecto>
 ```
@@ -276,9 +276,20 @@ Si usas esta opción, excluye del despliegue archivos que no deban publicarse (p
 4. Revisar responsividad y accesibilidad.
 5. Hacer commit en `main` y desplegar de forma manual siguiendo la sección 9.
 
-## 11. Supuestos pendientes de confirmar
+## 11. Estado de la implementación y supuestos
 
-- Si la aplicación es una SPA con pestañas o múltiples páginas HTML.
-- Si se usa Alpine.js o solo JavaScript vanilla.
-- Los parámetros y rangos de las tablas son valores iniciales y pueden ajustarse tras el prototipo en Claude Design.
-- Las versiones de Chart.js, Alpine.js, Pico CSS y Wrangler deben verificarse en los registros oficiales.
+**Implementado (SPA con enrutado por hash, sin build):** las 8 simulaciones, con modelos puros en `js/models/` e interfaz en `js/ui/sims/`.
+
+Decisiones que difieren del borrador inicial:
+- Es una SPA (`index.html` + rutas `#/<id>`), no varias páginas HTML. No hay carpeta `pages/`.
+- No se usa Alpine.js.
+- Chart.js 4.6.1 y Pico CSS 2.1.1, vendorizados en `/vendor`.
+- Los controles Ejecutar / Pausar / Reiniciar existen en las simulaciones que avanzan en el tiempo (6.4, 6.5, 6.6 y 6.8 estación única). Las demás se recalculan al mover un parámetro; el Beer Game avanza semana a semana con el botón «Enviar pedido».
+- Beer Game: el pedido llega al proveedor la semana siguiente y el envío tarda 2 semanas. La computadora pide `pedido recibido + 0,25 × (12 − inventario neto)`.
+- Interés compuesto: el aporte es mensual y la tasa efectiva mensual se deriva de la nominal y de las capitalizaciones por año.
+- Punto de reorden y sistemas de revisión: las ventas no atendidas se pierden (no hay pendientes).
+- Colas: horizonte fijo de 8 horas simuladas.
+
+Para probar en local hace falta un servidor estático (los módulos ES no cargan con `file://`), por ejemplo `python3 -m http.server 8765` desde la raíz.
+
+**Pendiente de validar con el equipo:** parámetros y rangos por defecto, y el aspecto visual definitivo de Claude Design.
